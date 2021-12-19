@@ -4,12 +4,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+
 import java.io.Serializable;
 
 public class Controller implements Serializable {
@@ -25,7 +29,7 @@ public class Controller implements Serializable {
 
     @FXML
     public void initialize() {
-        init();
+        init(); //debug
         firstName.setCellValueFactory(new PropertyValueFactory<>("FirstName"));
         lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
@@ -61,9 +65,25 @@ public class Controller implements Serializable {
 
         SortedList<Contact> sortedList = new SortedList<Contact>(filteredData);
         sortedList.comparatorProperty().bind(contactsTable.comparatorProperty());
+        contactsTable.getSortOrder().add(firstName);
+        contactsTable.sort();
         contactsTable.setItems(sortedList);
+
+    }
+    /*  NOT FINISHED */
+    public static void onExit(Event event) {
+        Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+
+        stage.getScene().getWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, event1 -> {
+
+            System.out.println("im here");
+        });
+
+        System.out.println("exit");
     }
 
+
+    /* DEBUG */
     private void init() {
         Contact c1 = new Contact("Ben","Barness","1");
         Contact c2 = new Contact("David","D","2");
