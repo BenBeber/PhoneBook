@@ -48,7 +48,7 @@
                   </TextField>
                </children>
             </HBox>
-            <TableView fx:id="contactsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="601.0" prefWidth="400.0">
+            <TableView fx:id="contactsTable" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="601.0" prefWidth="400.0">
                <columns>
                   <TableColumn fx:id="firstName" prefWidth="117.0" text="First Name" />
                   <TableColumn fx:id="lastName" prefWidth="119.0" text="Last Name" />

@@ -62,4 +62,5 @@ public class Contact implements Serializable, Comparable {
         }
         return this.lastName.compareTo(other.lastName);
     }
+
 }

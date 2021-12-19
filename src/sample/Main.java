@@ -14,11 +14,8 @@ public class Main extends Application {
         primaryStage.setTitle("Contact Book");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
-    }
 
-    @Override
-    public void stop() throws Exception {
-        super.stop();
+
     }
 
     public static void main(String[] args) {

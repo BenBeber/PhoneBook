@@ -4,17 +4,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import java.io.Serializable;
+import java.io.*;
 
 public class Controller implements Serializable {
 
@@ -40,7 +37,20 @@ public class Controller implements Serializable {
     @FXML
     void deleteContact() {
         Contact contact = contactsTable.getSelectionModel().getSelectedItem();
-        dataList.remove(contact);
+        if (contact == null) {
+            return;
+        }
+        Alert deleteAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        deleteAlert.setTitle("Deleting Contact");
+        deleteAlert.setHeaderText("Are you sure you want to delete " + contact);
+        deleteAlert.setHeaderText(null);
+        deleteAlert.setContentText("The contact " + contact + "will be permanently deleted");
+
+        if (deleteAlert.showAndWait().get() == ButtonType.OK) {
+            dataList.remove(contact);
+        }
+
+
     }
 
     @FXML
@@ -70,16 +80,19 @@ public class Controller implements Serializable {
         contactsTable.setItems(sortedList);
 
     }
+
+    @FXML
+    private void SaveFile() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    }
+
     /*  NOT FINISHED */
-    public static void onExit(Event event) {
-        Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
+    public static void onExit(Stage stage) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        ButtonType buttonSave = new ButtonType("Save and Quit");
+        ButtonType buttonQuit = new ButtonType("Quit");
 
-        stage.getScene().getWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, event1 -> {
 
-            System.out.println("im here");
-        });
-
-        System.out.println("exit");
     }
 
 
@@ -95,6 +108,29 @@ public class Controller implements Serializable {
         dataList.add(c3);
         dataList.add(c4);
         dataList.add(new Contact("aa","aa","1"));
+    }
+
+
+    private boolean saveFile() {
+        File file = getFile();
+
+        try (FileOutputStream fileOutput = new FileOutputStream(file)) {
+            ObjectOutputStream objectOutput = new ObjectOutputStream(fileOutput);
+            objectOutput.writeObject(dataList);
+            objectOutput.close();
+            fileOutput.close();
+            return true;
+        } catch (FileNotFoundException e) {
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private File getFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(new File("."));
+        return fileChooser.showOpenDialog(null);
     }
 
 }
