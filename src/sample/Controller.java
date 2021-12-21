@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Optional;
 
 public class Controller implements Serializable {
@@ -29,17 +30,44 @@ public class Controller implements Serializable {
 
     private final ObservableList<Contact> dataList = FXCollections.observableArrayList();
     private Contact contact;
+    private boolean isChanged;
+
+    private ContactsList contactsList;
 
     enum DialogMode{ADD , UPDATE}
 
 
     @FXML
     public void initialize() {
+        contactsList = new ContactsList();
         init(); //debug
         firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
-        search();
+        isChanged = false;
+        //search();
+        tester();
+
+    }
+
+    private void tester() {
+        Contact c1 = new Contact("Ben","Barness","1");
+        Contact c2 = new Contact("David","D","2");
+        Contact c3 = new Contact("Gamma","G","3");
+        Contact c4 = new Contact("Delta","D","4");
+
+
+        /*contactsList.addContact(c1);
+        contactsList.addContact(c2);
+        contactsList.addContact(c3);
+        contactsList.addContact(c4);
+        contactsList.addContact(new Contact("Maya", "why","0524"));*/
+
+        contactsList.loadContactListFromFile();
+        contactsTable.setItems(contactsList.getContactsList());
+
+
+
 
     }
 
@@ -57,7 +85,7 @@ public class Controller implements Serializable {
 
     @FXML
     void contactHandler(ActionEvent event) {
-        Contact contact = null;
+        Contact contact;
         DialogMode mode;
         String dialogTitle;
         if (event.getSource().equals(editButton)) {
@@ -86,30 +114,25 @@ public class Controller implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
-        Dialog<ButtonType> dialog = new Dialog<>();
     }
 
 
     private void search() {
         FilteredList<Contact> filteredData = new FilteredList<Contact>(dataList, b -> true);
-        searchField.textProperty().addListener((observable ,oldValue,newValue ) -> {
-            filteredData.setPredicate(contact -> {
-                if(newValue == null || newValue.isEmpty()) {
-                    return true;
-                }
-                String lowerCaseFilter = newValue.toLowerCase();
+        searchField.textProperty().addListener((observable ,oldValue,newValue ) -> filteredData.setPredicate(contact -> {
+            if(newValue == null || newValue.isEmpty()) {
+                return true;
+            }
+            String lowerCaseFilter = newValue.toLowerCase();
 
-                if (contact.getFirstName().toLowerCase().indexOf(lowerCaseFilter) != -1 ) {
-                    return true;
-                }else if (contact.getLastName().toLowerCase().indexOf(lowerCaseFilter) != -1) {
-                    return true;
-                }else {
-                    return false;
-                }
-            });
-        });
+            if (contact.getFirstName().toLowerCase().indexOf(lowerCaseFilter) != -1 ) {
+                return true;
+            }else if (contact.getLastName().toLowerCase().indexOf(lowerCaseFilter) != -1) {
+                return true;
+            }else {
+                return false;
+            }
+        }));
 
         SortedList<Contact> sortedList = new SortedList<Contact>(filteredData);
         sortedList.comparatorProperty().bind(contactsTable.comparatorProperty());

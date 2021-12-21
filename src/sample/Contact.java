@@ -68,4 +68,15 @@ public class Contact implements Serializable, Comparable {
         return this.lastName.compareTo(other.lastName);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Contact) ) {
+            return false;
+        }
+        Contact other = (Contact)obj;
+        if (this.firstName.equals(other.firstName) && this.lastName.equals(other.lastName) && this.getPhoneNumber().equals(other.getPhoneNumber())) {
+            return true;
+        }
+        return false;
+    }
 }
