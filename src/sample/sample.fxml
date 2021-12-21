@@ -13,7 +13,7 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <top>
-      <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="My Phone Book" BorderPane.alignment="CENTER">
+      <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="My Phone Book" underline="true" BorderPane.alignment="CENTER">
          <font>
             <Font name="Arial Bold" size="35.0" />
          </font>
@@ -22,9 +22,9 @@
    <bottom>
       <HBox prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" text="Add" />
+            <Button fx:id="addButton" mnemonicParsing="false" onAction="#contactHandler" text="Add" />
             <Button mnemonicParsing="false" onAction="#deleteContact" text="Delete" />
-            <Button mnemonicParsing="false" text="Edit" />
+            <Button fx:id="editButton" mnemonicParsing="false" onAction="#contactHandler" text="Edit" />
          </children>
       </HBox>
    </bottom>
@@ -41,18 +41,18 @@
                         <Font size="18.0" />
                      </font>
                   </Label>
-                  <TextField fx:id="searchField" maxWidth="1.7976931348623157E308" onAction="#search" prefHeight="25.0" prefWidth="280.0" promptText="search">
+                  <TextField fx:id="searchField" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="280.0" promptText="search">
                      <HBox.margin>
                         <Insets left="10.0" top="18.0" />
                      </HBox.margin>
                   </TextField>
                </children>
             </HBox>
-            <TableView fx:id="contactsTable" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="601.0" prefWidth="400.0">
+            <TableView fx:id="contactsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="601.0" prefWidth="400.0">
                <columns>
                   <TableColumn fx:id="firstName" prefWidth="117.0" text="First Name" />
                   <TableColumn fx:id="lastName" prefWidth="119.0" text="Last Name" />
-                  <TableColumn fx:id="phoneNumber" prefWidth="159.0" text="Phone Number" />
+                  <TableColumn fx:id="phoneNumber" prefWidth="163.0" text="Phone Number" />
                </columns>
             </TableView>
          </children>

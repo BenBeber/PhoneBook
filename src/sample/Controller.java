@@ -4,7 +4,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
@@ -12,6 +15,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import java.io.*;
+import java.util.Optional;
 
 public class Controller implements Serializable {
 
@@ -20,14 +24,19 @@ public class Controller implements Serializable {
     @FXML private TableColumn<Contact, String > phoneNumber;
     @FXML private TextField searchField;
     @FXML private TableView <Contact> contactsTable;
+    @FXML private Button addButton;
+    @FXML private Button editButton;
 
     private final ObservableList<Contact> dataList = FXCollections.observableArrayList();
+    private Contact contact;
+
+    enum DialogMode{ADD , UPDATE}
 
 
     @FXML
     public void initialize() {
         init(); //debug
-        firstName.setCellValueFactory(new PropertyValueFactory<>("FirstName"));
+        firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
         search();
@@ -40,20 +49,49 @@ public class Controller implements Serializable {
         if (contact == null) {
             return;
         }
-        Alert deleteAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        deleteAlert.setTitle("Deleting Contact");
-        deleteAlert.setHeaderText("Are you sure you want to delete " + contact);
-        deleteAlert.setHeaderText(null);
-        deleteAlert.setContentText("The contact " + contact + "will be permanently deleted");
-
-        if (deleteAlert.showAndWait().get() == ButtonType.OK) {
+        Optional<ButtonType> selected = showConfimationDialog("Deleting Contact",null,"Are you sure you want to delete " + contact);
+        if (selected.get() == ButtonType.OK) {
             dataList.remove(contact);
         }
-
-
     }
 
     @FXML
+    void contactHandler(ActionEvent event) {
+        Contact contact = null;
+        DialogMode mode;
+        String dialogTitle;
+        if (event.getSource().equals(editButton)) {
+            mode = DialogMode.UPDATE;
+            contact = contactsTable.getSelectionModel().getSelectedItem();
+            dialogTitle = "Update contact";
+            if (contact == null) {
+                return;
+            }
+        } else {
+                mode = DialogMode.ADD;
+                dialogTitle = "adding new Student";
+        }
+
+
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("ContactEdiot.fxml"));
+            DialogPane contactDialogPane = loader.load();
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setDialogPane(contactDialogPane);
+            dialog.setTitle(dialogTitle);
+            Optional<ButtonType> userChoise = dialog.showAndWait();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+    }
+
+
     private void search() {
         FilteredList<Contact> filteredData = new FilteredList<Contact>(dataList, b -> true);
         searchField.textProperty().addListener((observable ,oldValue,newValue ) -> {
@@ -95,6 +133,10 @@ public class Controller implements Serializable {
 
     }
 
+    private void setContact(Contact contact){
+        this.contact = contact;
+    }
+
 
     /* DEBUG */
     private void init() {
@@ -132,5 +174,15 @@ public class Controller implements Serializable {
         fileChooser.setInitialDirectory(new File("."));
         return fileChooser.showOpenDialog(null);
     }
+
+    private Optional<ButtonType> showConfimationDialog(String title, String headerText, String contentText) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.setContentText(contentText);
+
+        return alert.showAndWait();
+    }
+
 
 }
