@@ -5,15 +5,14 @@ import javafx.collections.ObservableList;
 import javafx.stage.FileChooser;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class ContactsList {
-    private ObservableList<Contact> contactsList;
-
-
-    public ContactsList() {
-        this.contactsList = FXCollections.observableArrayList();
-    }
+    private ObservableList<Contact> contactsList = FXCollections.observableArrayList();
+    File file;
+    enum fileMode{SAVE , LOAD}
 
     public ObservableList<Contact> getContactsList() {
         return contactsList;
@@ -54,51 +53,44 @@ public class ContactsList {
         return contactsList.iterator();
     }
 
-    public boolean exportListToFile() {
-        File file = getFile();
+    public String exportListToFile() throws IOException {
+        File file = getFile(fileMode.SAVE);
 
-        try {
-            FileOutputStream fileOutput = new FileOutputStream(file);
-            ObjectOutputStream objectOutput = new ObjectOutputStream(fileOutput);
-            objectOutput.writeObject(contactsList);
-            objectOutput.close();
-            fileOutput.close();
-            return true;
-        } catch (FileNotFoundException e) {
-            return false;
-        } catch (IOException e) {
-            return false;
-        }
+        FileOutputStream fileOutput = new FileOutputStream(file);
+        ObjectOutputStream objectOutput = new ObjectOutputStream(fileOutput);
+        objectOutput.writeObject(new ArrayList<Contact>(contactsList));
+        objectOutput.close();
+        fileOutput.close();
+        return file.getAbsolutePath();
     }
 
-    public boolean loadContactListFromFile () {
-        File file = getFile1();
+    public String loadContactListFromFile () {
+        File file = getFile(fileMode.LOAD);
 
         if (file == null) {
-            return false;
+            return null;
         }
         try {
             FileInputStream fileInput = new FileInputStream(file);
             ObjectInputStream objectInput = new ObjectInputStream(fileInput);
-            this.contactsList = (ObservableList<Contact>)objectInput.readObject();
-            return true;
+            List<Contact> list = (List<Contact>) objectInput.readObject();
+            contactsList = FXCollections.observableList(list);
+            return file.getAbsolutePath();
         }catch (IOException e) {
-            return false;
+            return null;
         } catch (ClassNotFoundException e) {
-            return false;
+            return null;
         }
     }
 
-    private File getFile() {
+    private File getFile(fileMode mode) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Please select a file");
         fileChooser.setInitialDirectory(new File("."));
-        return fileChooser.showSaveDialog(null);
-    }
-    private File getFile1() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Please select a file");
-        fileChooser.setInitialDirectory(new File("."));
+        if (mode == fileMode.SAVE) {
+            return fileChooser.showSaveDialog(null);
+        }
         return fileChooser.showOpenDialog(null);
     }
+
 }
