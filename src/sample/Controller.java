@@ -1,24 +1,20 @@
 package sample;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.FileChooser;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Optional;
 
-public class Controller implements Serializable {
+public class Controller {
 
     @FXML private TableColumn<Contact, String> lastName;
     @FXML private TableColumn<Contact, String> firstName;
@@ -26,48 +22,22 @@ public class Controller implements Serializable {
     @FXML private TextField searchField;
     @FXML private TableView <Contact> contactsTable;
     @FXML private Button addButton;
-    @FXML private Button editButton;
+    @FXML private BorderPane mainPanel;
+    @FXML private MenuItem saveAsMenuItem;
+    @FXML private MenuItem loadItemMenu;
 
-    private final ObservableList<Contact> dataList = FXCollections.observableArrayList();
-    private Contact contact;
     private boolean isChanged;
-
     private ContactsList contactsList;
-
-    enum DialogMode{ADD , UPDATE}
-
 
     @FXML
     public void initialize() {
         contactsList = new ContactsList();
-        init(); //debug
+        contactsList.addContact("Ilay", "Barness", "0524700");
         firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
         isChanged = false;
-        //search();
-        tester();
-
-    }
-
-    private void tester() {
-        Contact c1 = new Contact("Ben","Barness","1");
-        Contact c2 = new Contact("David","D","2");
-        Contact c3 = new Contact("Gamma","G","3");
-        Contact c4 = new Contact("Delta","D","4");
-
-
-        /*contactsList.addContact(c1);
-        contactsList.addContact(c2);
-        contactsList.addContact(c3);
-        contactsList.addContact(c4);
-        contactsList.addContact(new Contact("Maya", "why","0524"));*/
-
-        contactsList.loadContactListFromFile();
-        contactsTable.setItems(contactsList.getContactsList());
-
-
-
+        search();
 
     }
 
@@ -77,48 +47,64 @@ public class Controller implements Serializable {
         if (contact == null) {
             return;
         }
-        Optional<ButtonType> selected = showConfimationDialog("Deleting Contact",null,"Are you sure you want to delete " + contact);
+        Optional<ButtonType> selected = showAlert(Alert.AlertType.CONFIRMATION,"Deleting Contact",null,"Are you sure you want to delete " + contact);
         if (selected.get() == ButtonType.OK) {
-            dataList.remove(contact);
+            contactsList.removeContact(contact);
+            isChanged = true;
         }
     }
 
     @FXML
-    void contactHandler(ActionEvent event) {
+    void contactHandler(ActionEvent event) throws IOException {
         Contact contact;
-        DialogMode mode;
-        String dialogTitle;
-        if (event.getSource().equals(editButton)) {
-            mode = DialogMode.UPDATE;
+        String title;
+        if (event.getSource().equals(addButton) ) {
+            contact = null;
+            title = "Adding new Contact";
+        }
+        else {
             contact = contactsTable.getSelectionModel().getSelectedItem();
-            dialogTitle = "Update contact";
             if (contact == null) {
                 return;
             }
-        } else {
-                mode = DialogMode.ADD;
-                dialogTitle = "adding new Student";
+            title = "Update Contact";
         }
 
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initOwner(mainPanel.getScene().getWindow());
+        dialog.setTitle(title);
 
-        try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("ContactEdiot.fxml"));
-            DialogPane contactDialogPane = loader.load();
-            Dialog<ButtonType> dialog = new Dialog<>();
-            dialog.setDialogPane(contactDialogPane);
-            dialog.setTitle(dialogTitle);
-            Optional<ButtonType> userChoise = dialog.showAndWait();
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("ContactEdiot.fxml"));
+        dialog.getDialogPane().setContent(loader.load());
 
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        ContactEditorController contactEditor = loader.getController();
+        contactEditor.setDialog(contact);
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.addEventFilter(ActionEvent.ACTION, event1 -> {
+            if (contactEditor.getContact() == null) {
+                showAlert(Alert.AlertType.ERROR, "Illegal Values",null,"invalid first name/last name/phone number ");
+                event1.consume();
+            }
+        });
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK ) {
+            isChanged = true;
+            if (contact == null) {
+                contactsList.addContact(contactEditor.getContact());
+            }
+            contactsTable.refresh();
         }
     }
 
 
     private void search() {
-        FilteredList<Contact> filteredData = new FilteredList<Contact>(dataList, b -> true);
+        FilteredList<Contact> filteredData = new FilteredList<Contact>(contactsList.getContactsList(), b -> true);
         searchField.textProperty().addListener((observable ,oldValue,newValue ) -> filteredData.setPredicate(contact -> {
             if(newValue == null || newValue.isEmpty()) {
                 return true;
@@ -137,75 +123,76 @@ public class Controller implements Serializable {
         SortedList<Contact> sortedList = new SortedList<Contact>(filteredData);
         sortedList.comparatorProperty().bind(contactsTable.comparatorProperty());
         contactsTable.getSortOrder().add(firstName);
-        contactsTable.sort();
         contactsTable.setItems(sortedList);
 
     }
 
     @FXML
-    private void SaveFile() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-    }
-
-    /*  NOT FINISHED */
-    public static void onExit(Stage stage) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        ButtonType buttonSave = new ButtonType("Save and Quit");
-        ButtonType buttonQuit = new ButtonType("Quit");
-
-
-    }
-
-    private void setContact(Contact contact){
-        this.contact = contact;
-    }
-
-
-    /* DEBUG */
-    private void init() {
-        Contact c1 = new Contact("Ben","Barness","1");
-        Contact c2 = new Contact("David","D","2");
-        Contact c3 = new Contact("Gamma","G","3");
-        Contact c4 = new Contact("Delta","D","4");
-
-        dataList.add(c1);
-        dataList.add(c2);
-        dataList.add(c3);
-        dataList.add(c4);
-        dataList.add(new Contact("aa","aa","1"));
-    }
-
-
-    private boolean saveFile() {
-        File file = getFile();
-
-        try (FileOutputStream fileOutput = new FileOutputStream(file)) {
-            ObjectOutputStream objectOutput = new ObjectOutputStream(fileOutput);
-            objectOutput.writeObject(dataList);
-            objectOutput.close();
-            fileOutput.close();
-            return true;
-        } catch (FileNotFoundException e) {
-            return false;
+    private void saveContactsList(ActionEvent event) {
+        boolean saveToNewFile = event.getSource().equals(saveAsMenuItem) ? true:false;
+        try {
+            String path = contactsList.saveList(saveToNewFile);
+            showAlert(Alert.AlertType.INFORMATION, "File Save","Contacts list saved successfully","file saved: "+path);
+            isChanged = false;
         } catch (IOException e) {
-            return false;
+            showAlert(Alert.AlertType.ERROR, "ERROR","Could not open or save the file","file is not saved");
+        } catch (NullPointerException e) {
         }
     }
 
-    private File getFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(new File("."));
-        return fileChooser.showOpenDialog(null);
+    @FXML
+    private void close() {
+        Stage stage = (Stage)mainPanel.getScene().getWindow();
+        stage.close();
     }
 
-    private Optional<ButtonType> showConfimationDialog(String title, String headerText, String contentText) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    @FXML
+    private void loadFile(ActionEvent event) {
+        boolean loadNewList= event.getSource().equals(loadItemMenu) ? true:false;
+        try {
+            contactsList.loadContactListFromFile(loadNewList);
+        } catch (IOException e) {
+            showAlert(Alert.AlertType.ERROR, "Loading Error Occurred",null,"failed or interrupted I/O operations");
+        } catch (ClassNotFoundException e) {
+            showAlert(Alert.AlertType.ERROR,"Loading Error Occurred",null,"loading the class failure");
+        } catch (NullPointerException e) {
+
+        }
+    }
+
+
+    /*  NOT FINISHED */
+    public void onExit() {
+        if (!isChanged) {
+            Platform.exit();
+        }
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        ButtonType buttonSave = new ButtonType("Save and Quit");
+        ButtonType buttonQuit = new ButtonType("Quit");
+        ButtonType buttonCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(buttonSave,buttonQuit,buttonCancel);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get().equals(buttonSave)) {
+            try {
+                contactsList.saveList(false);
+            } catch (IOException e) {
+            } catch (NullPointerException e) {}
+
+
+        } else if (result.get().equals(buttonQuit)) {
+            close();
+        }
+
+    }
+
+
+    private Optional<ButtonType> showAlert(Alert.AlertType alertType, String title, String headerText, String contentText) {
+        Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(headerText);
         alert.setContentText(contentText);
 
         return alert.showAndWait();
     }
-
-
 }

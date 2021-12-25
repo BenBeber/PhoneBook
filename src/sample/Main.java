@@ -10,12 +10,17 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("sample.fxml"));
+        Parent root = loader.load();
+        Controller controller = loader.getController();
         primaryStage.setTitle("Contact Book");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
 
-
+        primaryStage.setOnCloseRequest(event -> {
+            event.consume();
+            controller.onExit();
+        });
     }
 
     public static void main(String[] args) {

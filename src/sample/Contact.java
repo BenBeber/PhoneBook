@@ -74,9 +74,6 @@ public class Contact implements Serializable, Comparable {
             return false;
         }
         Contact other = (Contact)obj;
-        if (this.firstName.equals(other.firstName) && this.lastName.equals(other.lastName) && this.getPhoneNumber().equals(other.getPhoneNumber())) {
-            return true;
-        }
-        return false;
+        return this.getFirstName().equals(other.getFirstName()) && this.getLastName().equals(other.getLastName());
     }
 }
