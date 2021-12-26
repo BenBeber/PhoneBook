@@ -11,6 +11,7 @@ public class ContactsList {
     private ObservableList<Contact> contactsList;
     private File file;
     enum FileMode {SAVE ,LOAD}
+    //add list has changed boolean
 
     public ContactsList() {
         contactsList = FXCollections.observableArrayList();
@@ -26,18 +27,18 @@ public class ContactsList {
         }
         contactsList.add(contact);
     }
-
+//delete!!!!!!
     public void addContact(String firstName, String lastName, String phoneNumber) {
         addContact(new Contact(firstName, lastName, phoneNumber));
     }
-
+//change to void
     public boolean removeContact(Contact contact) {
         if (contact == null) {
             return false;
         }
         return contactsList.remove(contact);
     }
-
+//delete!!!
     public boolean updateContact(Contact contact, String firstName, String lastName, String phoneNumber) {
         try {
             contact.setFirstName(firstName);
@@ -65,7 +66,7 @@ public class ContactsList {
         File newFile = FileHandler.getFile(FileMode.LOAD);
         if (loadNewList) {
             file = newFile;
-            contactsList.clear();
+            contactsList.clear();           //clear the list in the end to make sure no data has lost
         }
         if (newFile == null) {
             throw new NullPointerException();
@@ -73,8 +74,8 @@ public class ContactsList {
         FileInputStream fileInput = new FileInputStream(newFile);
         ObjectInputStream objectInput = new ObjectInputStream(fileInput);
         List wrapper = (List<Contact>) objectInput.readObject();
-        for (Object object : wrapper) {
-            if (!(object instanceof Contact)) {
+        for (Object object : wrapper) { //change if statment to Contact
+            if (!(object instanceof Contact)) { //delete!!!! if statment
                 throw new IllegalArgumentException();
             }
             addContact((Contact) object);
