@@ -32,9 +32,7 @@ public class ContactEditorController {
                 contact.setLastName(lastNameField.getText());
                 contact.setPhoneNumber(phoneNumberField.getText());
             }
-        }catch (IllegalArgumentException e) {
-            return null;
-        }catch (NullPointerException e) {
+        }catch (IllegalArgumentException | NullPointerException e) {
             return null;
         }
         return contact;

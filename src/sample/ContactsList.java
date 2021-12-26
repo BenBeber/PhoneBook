@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ContactsList {
     private ObservableList<Contact> contactsList;
-    File file;
+    private File file;
     enum FileMode {SAVE ,LOAD}
 
     public ContactsList() {
@@ -32,6 +32,9 @@ public class ContactsList {
     }
 
     public boolean removeContact(Contact contact) {
+        if (contact == null) {
+            return false;
+        }
         return contactsList.remove(contact);
     }
 

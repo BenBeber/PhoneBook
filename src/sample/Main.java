@@ -18,11 +18,18 @@ public class Main extends Application {
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(event -> {
-            event.consume();
-            controller.onExit();
+            if (!(controller.onExit())) {
+                event.consume();
+            }
         });
     }
 
+
+
+
+    //TODO init the list in the main
+    //TODO add doc
+    //TODO check for bugs
     public static void main(String[] args) {
         launch(args);
     }
