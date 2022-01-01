@@ -7,23 +7,16 @@ public class Contact implements Serializable, Comparable {
     private String lastName;
     private PhoneNumber phoneNumber;
 
-    public Contact(String firstName, String lastName, String phoneNumber) throws IllegalArgumentException {
-        if ( firstName.isEmpty() && lastName.isEmpty() ) {
-            throw new IllegalArgumentException("New Contact must have first or last name.");
+    public Contact(String firstName, String lastName, String phoneNumber)  {
+        if ( firstName.trim().isEmpty() && lastName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Contact must have first or last name");
         }
         if ( firstName == null || lastName == null ) {
-            throw new IllegalArgumentException("Name or ");
+            throw new IllegalArgumentException("null values are illegal");
         }
-        try {
-            this.phoneNumber = new PhoneNumber(phoneNumber);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw e;
-        }
-
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.firstName = firstName.trim();
+        this.lastName = lastName.trim();
+        this.phoneNumber = new PhoneNumber(phoneNumber.trim());
 
     }
 
@@ -62,7 +55,7 @@ public class Contact implements Serializable, Comparable {
             return 0;
         }
         Contact other = (Contact) object;
-        if (this.firstName.compareTo(other.firstName) == 0) {
+        if (this.firstName.compareTo(other.firstName) != 0) {
             return this.firstName.compareTo(other.firstName);
         }
         return this.lastName.compareTo(other.lastName);

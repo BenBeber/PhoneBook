@@ -10,6 +10,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -29,19 +30,25 @@ public class Controller {
 
     private boolean isChanged;              //flag that keeps up if changes were made to the contact list
     private ContactsList contactsList;      //Data structure
+    private FileHandler fileHandler;
 
 
     @FXML
     public void initialize() {
         contactsList = new ContactsList();
-        contactsList.addContact("Ilay", "Barness", "0524700"); //DEBUG
         /*      binding contacts to the table columns      */
         firstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         lastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         phoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
 
+        fileHandler = new FileHandler();
+        try {
+            contactsList.loadContactListFromFile(true ,fileHandler.getFile());
+        } catch (IOException | ClassNotFoundException ignored) {
+        }
+
         isChanged = false;
-        search();       //search contact
+        search();  //active search
     }
 
     /**
@@ -51,6 +58,9 @@ public class Controller {
     @FXML
     void deleteContact() {
         Contact contact = contactsTable.getSelectionModel().getSelectedItem();
+        if (contact == null) {
+            return;
+        }
         Optional<ButtonType> selected = showAlert(Alert.AlertType.CONFIRMATION,"Deleting Contact",null,"Are you sure you want to delete " + contact);
         if (selected.get() == ButtonType.OK) {
             if(contactsList.removeContact(contact)) {
@@ -74,7 +84,7 @@ public class Controller {
         /* editing contact  */
         else {
             contact = contactsTable.getSelectionModel().getSelectedItem();
-            if (contact == null) { //no contact was selected
+            if (contact == null) {
                 return;
             }
             title = "Update Contact";
@@ -136,14 +146,21 @@ public class Controller {
      */
     @FXML
     private void saveContactsList(ActionEvent event) {
-        boolean saveToNewFile = event.getSource().equals(saveAsMenuItem);
+        if (event.getSource().equals(saveAsMenuItem)) {
+            File newFile = fileHandler.fileSelection(FileHandler.FileMode.SAVE);
+            if (newFile == null) {
+                return;
+            }else {
+                fileHandler.setFile(newFile);
+            }
+        }
         try {
-            String path = contactsList.saveList(saveToNewFile);
+            String path = contactsList.saveList(fileHandler.getFile());
             showAlert(Alert.AlertType.INFORMATION, "File Save","Contacts list saved successfully",path);
             isChanged = false;
         } catch (IOException e) {
             showAlert(Alert.AlertType.ERROR, "ERROR","Could not open or save the file","file is not saved");
-        } catch (NullPointerException e) {
+        } catch (NullPointerException ignored) {
         }
     }
 
@@ -159,18 +176,24 @@ public class Controller {
     }
 
     /**
-     * loading new contact list or add contacts from a file
+     * loading new contact list or adding contacts from a file
      */
     @FXML
     private void loadFile(ActionEvent event) {
-        boolean loadNewList= event.getSource().equals(loadItemMenu); //load new list or adding from a file
+        File fileToLoad = fileHandler.fileSelection(FileHandler.FileMode.LOAD);
+        boolean loadNewList = false;
+        if (event.getSource().equals(loadItemMenu)) {
+            loadNewList = true;
+            fileHandler.setFile(fileToLoad);
+        }
         try {
-            contactsList.loadContactListFromFile(loadNewList);
+            contactsList.loadContactListFromFile(loadNewList, fileToLoad);
+            isChanged = true;
         } catch (IOException e) {
             showAlert(Alert.AlertType.ERROR, "Error While Loading Occurred",null,"failed or interrupted I/O operations");
         } catch (ClassNotFoundException e) {
             showAlert(Alert.AlertType.ERROR,"Error While Loading Occurred",null,"loading the class failure");
-        } catch (NullPointerException e) {
+        } catch (NullPointerException ignored) {
         }
     }
 
@@ -182,7 +205,7 @@ public class Controller {
      */
     public boolean onExit() {
         if (!isChanged) {
-            return true;  //not changes
+            return true;  //no changes
         }
         /* new alert */
         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -190,14 +213,17 @@ public class Controller {
         ButtonType buttonQuit = new ButtonType("Quit", ButtonBar.ButtonData.CANCEL_CLOSE);
         ButtonType buttonCancel = new ButtonType("Cancel");
         alert.getButtonTypes().setAll(buttonSave,buttonQuit,buttonCancel);
-        /*      ADD TEXT HERE DONT FORGET     */
+
+        alert.setTitle("Exit");
+        alert.setHeaderText("Warning: Changes were made to the contacts list, any unsaved changes will be lost");
+        alert.setContentText("are you sure you want to continue");
         Optional<ButtonType> result = alert.showAndWait();
+        fileHandler.setFilePath();
         if (result.get().equals(buttonSave)) {
             try {
-                contactsList.saveList(false);
-                return true;
-            } catch (IOException e) {
-            } catch (NullPointerException e) {}
+                contactsList.saveList(fileHandler.getFile());
+            } catch (IOException | NullPointerException ignored) {
+            }
         }
         else return !result.get().equals(buttonCancel);
         return true;
@@ -207,8 +233,8 @@ public class Controller {
      * the method used for creating and displaying message to the user
      * @param alertType     dialog type
      * @param title         dialog title
-     * @param headerText    header text
-     * @param contentText   content
+     * @param headerText    dialog header
+     * @param contentText   dialog content
      * @return              user selection
      */
     private Optional<ButtonType> showAlert(Alert.AlertType alertType, String title, String headerText, String contentText) {
