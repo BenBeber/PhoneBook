@@ -1,4 +1,4 @@
-package sample;
+package PhoneBook;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -7,13 +7,23 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * the data structure of the contacts list
+ */
 public class ContactsList {
     private final ObservableList<Contact> contactsList;
 
+    /**
+     * constructor initial the list
+     */
     public ContactsList() {
         contactsList = FXCollections.observableArrayList();
     }
 
+    /**
+     * getter for the list
+     * @return the contacts list
+     */
     public ObservableList<Contact> getContactsList() {
         return contactsList;
     }

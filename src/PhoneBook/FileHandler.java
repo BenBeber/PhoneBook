@@ -1,4 +1,4 @@
-package sample;
+package PhoneBook;
 
 import javafx.stage.FileChooser;
 
@@ -8,22 +8,35 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
+/**
+ * this class responsible file utilization
+ */
 public class FileHandler {
     private File file;
     private String filePath;
-    enum FileMode {SAVE ,LOAD}
+    enum FileMode {SAVE ,LOAD} //custom enum for file chooser mode
 
+    /**
+     * constructor to set the initial loading of the last used file
+     */
     public FileHandler() {
         setInitialFilePath();
         this.file = new File(filePath);
-        System.out.println(file.getPath());
-        System.out.println(file.getName());
     }
 
+    /**
+     * the current file getter
+     * @return the file that we currently using
+     */
     public File getFile() {
         return file;
     }
 
+    /**
+     * selecting a file to load from/save to
+     * @param mode the file chooser mode
+     * @return selected file
+     */
     public File fileSelection (FileMode mode) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Please select a file");
@@ -34,6 +47,10 @@ public class FileHandler {
         return fileChooser.showOpenDialog(null);
     }
 
+    /**
+     * setting the current working file
+     * @param file to set
+     */
     public void setFile(File file) {
         if (file == null) {
             return;
@@ -41,6 +58,10 @@ public class FileHandler {
         this.file = file;
     }
 
+    /**
+     * the initial load
+     * reads the last used file path to load from
+     */
     private void setInitialFilePath() {
         try {
             Scanner s = new Scanner(new File(".\\util\\filePath.txt"));
@@ -51,13 +72,17 @@ public class FileHandler {
         }
     }
 
-    public void setFilePath() {
+    /**
+     * saving the latest used file path
+     */
+    public void setFilePath()  {
         try {
             FileWriter fileWriter = new FileWriter(new File(".\\util\\filePath.txt"));
-            System.out.println(file.getPath());
             fileWriter.write(file.getPath());
             fileWriter.close();
         } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 }

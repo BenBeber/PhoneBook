@@ -1,45 +1,77 @@
-package sample;
+package PhoneBook;
 
 import java.io.Serializable;
 
+/**
+ * this class represent contact and validate first and last name
+ */
 public class Contact implements Serializable, Comparable {
     private String firstName;
     private String lastName;
-    private PhoneNumber phoneNumber;
+    private final PhoneNumber phoneNumber;
 
+    /**
+     * creating new contact
+     * @param firstName first name
+     * @param lastName last name
+     * @param phoneNumber phone number
+     */
     public Contact(String firstName, String lastName, String phoneNumber)  {
-        if ( firstName.trim().isEmpty() && lastName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Contact must have first or last name");
-        }
-        if ( firstName == null || lastName == null ) {
-            throw new IllegalArgumentException("null values are illegal");
-        }
-        this.firstName = firstName.trim();
-        this.lastName = lastName.trim();
-        this.phoneNumber = new PhoneNumber(phoneNumber.trim());
-
+        this.phoneNumber = new PhoneNumber(phoneNumber);
+        setFirstName(firstName.trim());
+        setLastName(lastName.trim());
     }
 
+    /**
+     * getter for the first name
+     * @return contact first name
+     */
     public String getFirstName() {
         return firstName;
     }
 
+    /**
+     * setter for the first name
+     * @param firstName to set
+     */
     public void setFirstName(String firstName) {
+        if (firstName == null || firstName.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
         this.firstName = firstName;
     }
 
+    /**
+     * getter for the last name
+     * @return contact last name
+     */
     public String getLastName() {
         return lastName;
     }
 
+    /**
+     * setter for the last name
+     * @param lastName to set
+     */
     public void setLastName(String lastName) {
+        if (lastName == null || lastName.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
         this.lastName = lastName;
     }
 
+    /**
+     * getter for the phone number
+     * @return the contacts first number
+     */
     public String getPhoneNumber() {
         return phoneNumber.getPhoneNumber();
     }
 
+    /**
+     * setter for the phone number
+     * @param phoneNumber to set
+     */
     public void setPhoneNumber(String  phoneNumber) {
         this.phoneNumber.setPhoneNumber(phoneNumber);
     }

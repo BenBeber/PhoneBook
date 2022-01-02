@@ -1,4 +1,4 @@
-package sample;
+package PhoneBook;
 
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -8,14 +8,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-public class Controller {
-
+public class PhoneBookController {
     /*      table columns      */
     @FXML private TableColumn<Contact, String> lastName;
     @FXML private TableColumn<Contact, String> firstName;
@@ -52,7 +53,7 @@ public class Controller {
     }
 
     /**
-     * handels deletion of contact from the table/list
+     * handel delete of contact from the table/list
      * validate user choice by getting confirmation
      */
     @FXML
@@ -62,7 +63,7 @@ public class Controller {
             return;
         }
         Optional<ButtonType> selected = showAlert(Alert.AlertType.CONFIRMATION,"Deleting Contact",null,"Are you sure you want to delete " + contact);
-        if (selected.get() == ButtonType.OK) {
+        if (selected.isPresent() && selected.get() == ButtonType.OK) {
             if(contactsList.removeContact(contact)) {
                 isChanged = true;
             }
@@ -70,7 +71,7 @@ public class Controller {
     }
 
     /**
-     * handels editing or adding contact in a new window
+     * handel's editing or adding contact in a new window
      */
     @FXML
     void contactHandler(ActionEvent event) throws IOException {
@@ -119,6 +120,35 @@ public class Controller {
             }
             contactsTable.refresh();
         }
+    }
+
+    /**
+     * creating about window for the application
+     */
+    @FXML
+    void aboutDialog() {
+        ButtonType backButton = new ButtonType("Back", ButtonBar.ButtonData.OK_DONE);
+        Alert alert = new Alert(Alert.AlertType.NONE, "Phone Book",backButton);
+        alert.setTitle("About");
+        TextArea textArea = new TextArea("Made by Ben Beberashvili.\nThis application implements phone book. \n" +
+                                        "My solution for MAMAN 14. \nHome assignment of Course - Java Advanced Programming in the Open University.\n" +
+                                        "Thank you for using the app");
+
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+
+        GridPane.setVgrow(textArea , Priority.ALWAYS);
+        GridPane.setHgrow(textArea, Priority.ALWAYS);
+        GridPane aboutPane = new GridPane();
+
+        aboutPane.setMaxWidth(Double.MAX_VALUE);
+        aboutPane.add(textArea, 1,0);
+
+        alert.getDialogPane().setContent(aboutPane);
+        alert.showAndWait();
     }
 
     /**
@@ -210,23 +240,25 @@ public class Controller {
         /* new alert */
         Alert alert = new Alert(Alert.AlertType.WARNING);
         ButtonType buttonSave = new ButtonType("Save and Quit");
-        ButtonType buttonQuit = new ButtonType("Quit", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType buttonCancel = new ButtonType("Cancel");
+        ButtonType buttonQuit = new ButtonType("Quit");
+        ButtonType buttonCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(buttonSave,buttonQuit,buttonCancel);
 
         alert.setTitle("Exit");
-        alert.setHeaderText("Warning: Changes were made to the contacts list, any unsaved changes will be lost");
-        alert.setContentText("are you sure you want to continue");
+        alert.setHeaderText("Changes were made to the contacts list, any unsaved changes will be lost.");
+        alert.setContentText("are you sure you want to Quit?\n\n");
         Optional<ButtonType> result = alert.showAndWait();
         fileHandler.setFilePath();
-        if (result.get().equals(buttonSave)) {
+        if (result.isPresent() && result.get().equals(buttonSave)) {
             try {
                 contactsList.saveList(fileHandler.getFile());
-            } catch (IOException | NullPointerException ignored) {
+                return true;
+            } catch (IOException | NullPointerException e) {
+                showAlert(Alert.AlertType.ERROR,"File not Saved",null,"Problem occurred while saving the file");
+                return false;
             }
         }
-        else return !result.get().equals(buttonCancel);
-        return true;
+        else return !(result.isPresent() && result.get().equals(buttonCancel));
     }
 
     /**
